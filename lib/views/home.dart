@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:first_application/views/second_screen.dart';
 import 'package:first_application/views/widget/button.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController emailCont = TextEditingController();
+  TextEditingController passwordCont = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,6 +56,7 @@ class _HomePageState extends State<HomePage> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextFormField(
+                  controller: passwordCont,
                   validator: (value) {
                     if (value!.length > 8) {
                       return null;
@@ -71,7 +74,7 @@ class _HomePageState extends State<HomePage> {
             InkWell(
               onTap: () {
                 if (_formKey.currentState!.validate()) {
-                  saveemail(emailCont.text);
+                  signIn(emailCont.text, passwordCont.text);
                   Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -108,5 +111,13 @@ class _HomePageState extends State<HomePage> {
   saveemail(String email) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("email", email);
+  }
+
+  signIn(String email, String password) async {
+    final UserCredential = await FirebaseAuth.instance
+        .signInWithEmailAndPassword(email: email, password: password);
+    final user = UserCredential.user;
+    print(user?.uid);
+    saveemail(user!.email!);
   }
 }
