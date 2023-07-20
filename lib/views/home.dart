@@ -4,6 +4,8 @@ import 'package:first_application/views/widget/button.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'activity_list.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -72,15 +74,26 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             InkWell(
-              onTap: () {
+              onTap: () async {
                 if (_formKey.currentState!.validate()) {
-                  signIn(emailCont.text, passwordCont.text);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => SecondPage(
-                                email: emailCont.text,
-                              )));
+                  bool loginresult =
+                      await signIn(emailCont.text, passwordCont.text);
+                  if (loginresult == true) {
+                    /*Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SecondPage(
+                                  email: emailCont.text,
+                                )));*/
+
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ActivityList()));
+                  } else {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text("Error!")));
+                  }
                 }
               },
               child: Padding(
@@ -113,11 +126,21 @@ class _HomePageState extends State<HomePage> {
     prefs.setString("email", email);
   }
 
-  signIn(String email, String password) async {
-    final UserCredential = await FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: email, password: password);
-    final user = UserCredential.user;
-    print(user?.uid);
-    saveemail(user!.email!);
+  Future<bool> signIn(String email, String password) async {
+    bool result = false;
+    try {
+      final UserCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+      final user = UserCredential.user;
+      if (user != null) {
+        print(user?.uid);
+        saveemail(user!.email!);
+        result = true;
+        return result;
+      }
+      return result;
+    } catch (e) {
+      return result;
+    }
   }
 }
